@@ -14,9 +14,9 @@
   "description": "Real-time Bus Tracking App.",
   "main": "index.js",
   "scripts": {
-  "dev": "nodemon server.js",
-  "start": "node server.js"
-},
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/N3i9k3/bus-app-backend.git"
