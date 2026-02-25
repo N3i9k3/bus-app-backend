@@ -1,60 +1,36 @@
-// const express = require("express");
-// const cors = require("cors");
-// require("dotenv").config();
+// server.js
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
-// const app = express();
-
-// // middlewares
-// app.use(cors());
-// app.use(express.json());
-
-// // test route
-// app.get("/", (req, res) => {
-//   res.send("Bus App Backend Running 🚀");
-// });
-
-// const PORT = process.env.PORT || 5000;
-
-// app.listen(PORT, () => {
-//   console.log(`Server running on http://localhost:${PORT}`);
-// });
-
-
-
-
-
-const express = require('express');
-const mysql = require('mysql2');
-require('dotenv').config(); // Load .env file
+const db = require("./config/db"); // import MySQL pool from config
 
 const app = express();
-const port = process.env.PORT || 5000;
 
-// MySQL connection
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME
-});
+app.use(cors());
+app.use(express.json());
 
-// Attempt to connect
-db.connect((err) => {
-  if (err) {
-    console.error('❌ MySQL connection failed!');
-    console.error('Error message:', err.message); // Show exact reason
-    process.exit(1); // Stop server if DB fails
-  } else {
-    console.log('MySQL Connected'); // Successful connection
+// ✅ Test route to check DB connection
+app.get("/", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT 1 + 1 AS result"); // simple query
+    res.json({ message: "DB Connected ✅", result: rows[0].result });
+  } catch (err) {
+    console.error("❌ Database Error Full Object:", err); // log full error
+    res.status(500).json({ 
+      error: err.code || err.sqlMessage || JSON.stringify(err) // show something useful
+    });
   }
 });
 
-// Example route
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
+
+
+
+
+

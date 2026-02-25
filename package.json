@@ -6,7 +6,7 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.5",
-    "mysql2": "^3.16.2",
+    "mysql2": "^3.16.3",
     "socket.io": "^4.8.3"
   },
   "name": "bus-app-backend",
