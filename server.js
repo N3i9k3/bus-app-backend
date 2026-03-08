@@ -51,14 +51,20 @@ io.on("connection", (socket) => {
 
   try {
 
+    // await db.execute(
+    //   `INSERT INTO bus_locations (bus_id, latitude, longitude)
+    //    VALUES (?, ?, ?)
+    //    ON DUPLICATE KEY UPDATE
+    //    latitude = VALUES(latitude),
+    //    longitude = VALUES(longitude)`,
+    //   [bus_id, lat, lng]
+    // );
+
     await db.execute(
-      `INSERT INTO bus_locations (bus_id, latitude, longitude)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-       latitude = VALUES(latitude),
-       longitude = VALUES(longitude)`,
-      [bus_id, lat, lng]
-    );
+`INSERT INTO bus_locations (bus_id, latitude, longitude)
+VALUES (?, ?, ?)`,
+[bus_id, lat, lng]
+);
 
     io.emit("busLocation", { lat, lng });
 

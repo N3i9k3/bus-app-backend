@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Send Bus Location</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+
+<h2>Send Bus Location</h2>
+
+<button onclick="sendLocation()">Send Location</button>
+
+<script>
+const socket = io("http://localhost:5000");
+
+function sendLocation() {
+
+  const data = {
+    lat: 21.1458 + Math.random() * 0.01,
+    lng: 79.0882 + Math.random() * 0.01
+  };
+
+  console.log("Sending:", data);
+
+  socket.emit("locationUpdate", data);
+}
+</script>
+
+</body>
+</html>
