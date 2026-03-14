@@ -8,6 +8,8 @@ const app = express();   // ✅ FIRST create app
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static(__dirname));  //This lets the browser open files like driver.html
+
 const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const busRoutes = require("./routes/busRoutes");   // ✅ correct spelling
@@ -79,6 +81,6 @@ VALUES (?, ?, ?)`,
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
