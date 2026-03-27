@@ -46,35 +46,30 @@ io.on("connection", (socket) => {
 
   socket.on("locationUpdate", async (data) => {
 
-  console.log("Location received:", data);
+    console.log("Location received:", data);
 
-  const bus_id = 1;
-  const { lat, lng } = data;
+    const { busId, lat, lng } = data;
 
-  try {
+    try {
 
-    // await db.execute(
-    //   `INSERT INTO bus_locations (bus_id, latitude, longitude)
-    //    VALUES (?, ?, ?)
-    //    ON DUPLICATE KEY UPDATE
-    //    latitude = VALUES(latitude),
-    //    longitude = VALUES(longitude)`,
-    //   [bus_id, lat, lng]
-    // );
+      await db.execute(
+        `INSERT INTO bus_locations (bus_id, latitude, longitude)
+         VALUES (?, ?, ?)`,
+        [busId, lat, lng]
+      );
 
-    await db.execute(
-`INSERT INTO bus_locations (bus_id, latitude, longitude)
-VALUES (?, ?, ?)`,
-[bus_id, lat, lng]
-);
+      // 🔥 IMPORTANT FIX
+      io.emit("locationUpdate", {
+        busId,
+        lat,
+        lng
+      });
 
-    io.emit("busLocation", { lat, lng });
+    } catch (error) {
+      console.error("DB ERROR:", error);
+    }
 
-  } catch (error) {
-    console.error("DB ERROR:", error);
-  }
-
-});
+  });
 
   socket.on("disconnect", () => {
     console.log("User disconnected");
