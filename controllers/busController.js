@@ -81,7 +81,7 @@ exports.bookSeat = async (req, res) => {
       [id]
     );
 
-    res.json({ message: "Seat booked successfully ✅" });
+    res.json({ message: "Seat booked successfully. ✅" });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
