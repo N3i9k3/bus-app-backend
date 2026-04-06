@@ -1,0 +1,41 @@
+<html>
+<head>
+  <title>Driver GPS Tracking</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <h2>Driver GPS Tracking</h2>
+
+  <script>
+    const socket = io("http://localhost:5000");
+
+    let lastLat = null;
+    let lastLng = null;
+
+    navigator.geolocation.watchPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        if (lastLat && lastLng) {
+          const distance = Math.sqrt((lat - lastLat) ** 2 + (lng - lastLng) ** 2);
+          if (distance < 0.0001) return;
+        }
+
+        lastLat = lat;
+        lastLng = lng;
+
+        socket.emit("locationUpdate", { lat, lng });
+        console.log("Sending location:", { lat, lng });
+      },
+      (error) => console.error("Error getting location:", error),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+
+    socket.on("connect", () => console.log("Connected to server:", socket.id));
+    socket.on("disconnect", () => console.log("Disconnected from server"));
+  </script>
+</body>
+    
+</body>
+</html>

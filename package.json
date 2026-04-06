@@ -13,7 +13,7 @@
   "name": "bus-app-backend",
   "version": "1.0.0",
   "description": "Real-time Bus Tracking App.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js"

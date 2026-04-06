@@ -3,13 +3,8 @@ const db = require("../config/db");
 // CREATE BUS (Admin only)
 exports.createBus = async (req, res) => {
   const { bus_number, capacity } = req.body;
-
   try {
-    const [result] = await db.execute(
-      "INSERT INTO buses (bus_number, capacity) VALUES (?, ?)",
-      [bus_number, capacity]
-    );
-
+    await db.execute("INSERT INTO buses (bus_number, capacity) VALUES (?, ?)", [bus_number, capacity]);
     res.status(201).json({ message: "Bus created successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -30,13 +25,8 @@ exports.getBuses = async (req, res) => {
 exports.updateBus = async (req, res) => {
   const { id } = req.params;
   const { bus_number, capacity } = req.body;
-
   try {
-    await db.execute(
-      "UPDATE buses SET bus_number = ?, capacity = ? WHERE id = ?",
-      [bus_number, capacity, id]
-    );
-
+    await db.execute("UPDATE buses SET bus_number = ?, capacity = ? WHERE id = ?", [bus_number, capacity, id]);
     res.json({ message: "Bus updated successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -46,7 +36,6 @@ exports.updateBus = async (req, res) => {
 // DELETE BUS (Admin only)
 exports.deleteBus = async (req, res) => {
   const { id } = req.params;
-
   try {
     await db.execute("DELETE FROM buses WHERE id = ?", [id]);
     res.json({ message: "Bus deleted successfully" });
