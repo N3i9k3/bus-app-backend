@@ -1,41 +1,107 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title>Driver GPS Tracking</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nagpur Hub - Driver Control Panel</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; line-height: 1.6; background-color: #f0f2f5; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #4f46e5; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        button { 
+            background-color: #4f46e5; color: white; border: none; padding: 10px 15px; 
+            margin: 5px; border-radius: 5px; cursor: pointer; transition: 0.3s; 
+        }
+        button:hover { background-color: #3730a3; }
+        button.geo { background-color: #10b981; }
+        button.geo:hover { background-color: #059669; }
+        .status { font-size: 0.9rem; color: #666; margin-top: 10px; }
+    </style>
 </head>
 <body>
-  <h2>Driver GPS Tracking</h2>
 
-  <script>
+<div class="container">
+    <h2>Driver Control Panel 🚌</h2>
+    
+    <div class="section">
+        <label><strong>Operating Bus ID:</strong></label>
+        <input type="number" id="busId" value="1" style="width: 50px; padding: 5px;">
+    </div>
+
+    <div class="section">
+        <p><strong>Option 1: Manual Demo Points</strong></p>
+        <button onclick="moveBus(21.1458, 79.0882)">Nagpur Station</button>
+        <button onclick="moveBus(21.1500, 79.0900)">Medical Square</button>
+        <button onclick="moveBus(21.1600, 79.1000)">Telephone Exchange</button>
+    </div>
+
+    <div class="section">
+        <p><strong>Option 2: Use Device GPS</strong></p>
+        <button class="geo" onclick="startGps()">Start Live Tracking</button>
+        <div id="gpsStatus" class="status">GPS Status: Inactive</div>
+    </div>
+
+    <div id="log" class="status" style="background: #000; color: #0f0; padding: 10px; border-radius: 5px; height: 100px; overflow-y: auto;">
+        System Logs...
+    </div>
+</div>
+
+<script>
     const socket = io("http://localhost:5000");
+    const logEl = document.getElementById('log');
 
+    function updateLog(msg) {
+        logEl.innerHTML += `<div>> ${msg}</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // SHARED EMIT FUNCTION
+    function moveBus(lat, lng) {
+        const busId = document.getElementById('busId').value;
+        const data = { busId: parseInt(busId), lat, lng };
+        
+        console.log("Emitting:", data);
+        socket.emit("locationUpdate", data);
+        updateLog(`Sent: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+    }
+
+    // LIVE GPS LOGIC
     let lastLat = null;
     let lastLng = null;
 
-    navigator.geolocation.watchPosition(
-      (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+    function startGps() {
+        document.getElementById('gpsStatus').innerText = "GPS Status: Searching...";
+        
+        navigator.geolocation.watchPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
 
-        if (lastLat && lastLng) {
-          const distance = Math.sqrt((lat - lastLat) ** 2 + (lng - lastLng) ** 2);
-          if (distance < 0.0001) return;
-        }
+                // Threshold to avoid spamming if the bus isn't moving
+                if (lastLat && lastLng) {
+                    const diff = Math.abs(lat - lastLat) + Math.abs(lng - lastLng);
+                    if (diff < 0.0001) return; 
+                }
 
-        lastLat = lat;
-        lastLng = lng;
+                lastLat = lat;
+                lastLng = lng;
+                
+                document.getElementById('gpsStatus').innerText = `GPS Status: Active (${lat.toFixed(4)})`;
+                moveBus(lat, lng);
+            },
+            (error) => {
+                console.error(error);
+                updateLog("Error: GPS Access Denied");
+            },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+        );
+    }
 
-        socket.emit("locationUpdate", { lat, lng });
-        console.log("Sending location:", { lat, lng });
-      },
-      (error) => console.error("Error getting location:", error),
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-    );
+    socket.on("connect", () => updateLog("Connected to Server"));
+    socket.on("disconnect", () => updateLog("Disconnected from Server"));
+</script>
 
-    socket.on("connect", () => console.log("Connected to server:", socket.id));
-    socket.on("disconnect", () => console.log("Disconnected from server"));
-  </script>
-</body>
-    
 </body>
 </html>
