@@ -1,31 +1,38 @@
-<!DOCTYPE html>
 <html>
 <head>
-  <title>Send Bus Location</title>
+  <title>Driver GPS Tracking</title>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
-
 <body>
+  <h2>Driver GPS Tracking</h2>
 
-<h2>Send Bus Location</h2>
+  <script>
+    const socket = io("http://localhost:5000");
 
-<button onclick="sendLocation()">Send Location.</button>
+    let lastLat = null;
+    let lastLng = null;
 
-<script>
-const socket = io("http://localhost:5000");
+    navigator.geolocation.watchPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-function sendLocation() {
+        if (lastLat && lastLng) {
+          const distance = Math.sqrt((lat - lastLat) ** 2 + (lng - lastLng) ** 2);
+          if (distance < 0.0001) return;
+        }
 
-  const data = {
-    lat: 21.1458 + Math.random() * 0.01,
-    lng: 79.0882 + Math.random() * 0.01
-  };
+        lastLat = lat;
+        lastLng = lng;
 
-  console.log("Sending:", data);
+        socket.emit("locationUpdate", { lat, lng });
+        console.log("Sending location:", { lat, lng });
+      },
+      (error) => console.error("Error getting location:", error),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
 
-  socket.emit("locationUpdate", data);
-}
-</script>
-
+    socket.on("connect", () => console.log("Connected to server:", socket.id));
+    socket.on("disconnect", () => console.log("Disconnected from server"));
+  </script>
 </body>
-</html>

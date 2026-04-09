@@ -1,81 +1,57 @@
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
-
-const app = express();   // ✅ FIRST create app
-
-app.use(cors());
-app.use(express.json());
-
-app.use(express.static(__dirname));  //This lets the browser open files like driver.html
-
-const db = require("./config/db");
-const authRoutes = require("./routes/authRoutes");
-const busRoutes = require("./routes/busRoutes");   // ✅ correct spelling
-
-// Test DB Connection
-app.get("/", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT 1 + 1 AS result");
-    res.json({ message: "DB Connected ✅", result: rows[0].result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/buses", busRoutes);
-
-const PORT = process.env.PORT || 5000;
-
+const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
 
+const app = express();
 const server = http.createServer(app);
+
+// Initialize Socket.io with CORS support for your React Frontend
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    },
+  cors: { 
+    origin: ["http://localhost:3000", "http://localhost:5173"], // Covers React and Vite defaults
+    methods: ["GET", "POST"]
+  }
 });
 
-// socket event handling
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname)));
+
+// Import Routes
+const authRoutes = require("./routes/authRoutes");
+const busRoutes = require("./routes/busRoutes");
+
+// Use Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/buses", busRoutes);
+
+// Socket.io Real-time Logic
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("User Connected:", socket.id);
 
-  socket.on("locationUpdate", async (data) => {
-
-    console.log("Location received:", data);
-
-    const { busId, lat, lng } = data;
-
-    try {
-
-      await db.execute(
-        `INSERT INTO bus_locations (bus_id, latitude, longitude)
-         VALUES (?, ?, ?)`,
-        [busId, lat, lng]
-      );
-
-      // 🔥 IMPORTANT FIX
-      io.emit("locationUpdate", {
-        busId,
-        lat,
-        lng
-      });
-
-    } catch (error) {
-      console.error("DB ERROR:", error);
-    }
-
+  // When a driver (or simulator) sends a location update
+  socket.on("locationUpdate", (data) => {
+    console.log("Location Update Received:", data);
+    
+    // Broadcast the location to all connected passengers/clients
+    // 'data' should typically contain: { busId: 1, lat: 21.14, lng: 79.08 }
+    io.emit("receiveLocation", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log("User Disconnected:", socket.id);
   });
 });
 
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Base Route
+app.get("/", (req, res) => res.send("Nagpur Hub API is running"));
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
