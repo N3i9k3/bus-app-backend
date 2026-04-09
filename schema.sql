@@ -1,0 +1,31 @@
+CREATE DATABASE IF NOT EXISTS bus_app;
+USE bus_app;
+
+CREATE TABLE IF NOT EXISTS users(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(100),
+  email VARCHAR(100) UNIQUE,
+  password VARCHAR(255),
+  role ENUM('passenger','driver','admin')
+);
+
+CREATE TABLE IF NOT EXISTS buses(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  bus_number VARCHAR(20),
+  capacity INT
+);
+
+CREATE TABLE IF NOT EXISTS routes(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  source VARCHAR(100),
+  destination VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS locations(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  bus_id INT,
+  lat DOUBLE,
+  lng DOUBLE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (bus_id) REFERENCES buses(id)
+);
