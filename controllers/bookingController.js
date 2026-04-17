@@ -2,7 +2,7 @@ const db = require("../config/db");
 
 // ✅ BOOK TICKET
 exports.bookTicket = async (req, res) => {
-  const { busId, passengerName, seatNumber } = req.body;
+  const { busId, passengerName, seatNumber, fare, passengerType, age } = req.body;
 
   try {
     // 🔥 CHECK IF SEAT ALREADY BOOKED
@@ -23,9 +23,9 @@ exports.bookTicket = async (req, res) => {
     // ✅ INSERT BOOKING
     await db.execute(
       `INSERT INTO bookings
-      (bus_id, passenger_name, seat_number)
-      VALUES (?, ?, ?)`,
-      [busId, passengerName, seatNumber]
+      (bus_id, passenger_name, seat_number, fare, passenger_type, age)
+      VALUES (?, ?, ?, ?, ?, ?)`,
+      [busId, passengerName, seatNumber, fare, passengerType, age]
     );
 
     // // 🔥 UPDATE PASSENGER COUNT
@@ -76,12 +76,14 @@ exports.getMyBookings = async (req, res) => {
         bk.id,
         bk.seat_number,
         bk.passenger_name,
+        bk.fare,
+        bk.passenger_type,
+        bk.age,
         b.bus_number,
         b.source,
         b.destination,
         b.departure_time,
-        b.arrival_time,
-        b.fare
+        b.arrival_time
       FROM bookings bk
       JOIN buses b
       ON bk.bus_id = b.id
