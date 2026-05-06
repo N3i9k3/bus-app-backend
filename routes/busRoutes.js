@@ -131,7 +131,8 @@ router.put("/:id", authMiddleware, roleMiddleware("admin"), busController.update
 router.delete("/:id", authMiddleware, roleMiddleware("admin"), busController.deleteBus);
 
 // user can view + book
-router.get("/", authMiddleware, busController.getBuses);
+router.get("/", busController.getBuses);
 router.post("/:id/book", authMiddleware, busController.bookSeat);
 
 module.exports = router;
+
